@@ -70,6 +70,7 @@ const stampNews = (news) => {
     /* Append news */
     if (news.length > 0) {
         news.forEach(article => {
+            let articleEl;
             let icon = 'fa-regular';
 
             /* Check if article is saved */
@@ -87,9 +88,14 @@ const stampNews = (news) => {
                     <div class="fw-bold">Pubblicato da ${article.author}</div>
                     <div class="fst-italic">In data ${article.published}</div>
                     <div class="my-3">${article.content}</div>
-                    <div><img src="./assets/images/${article.image}" alt="${article.title}"></div>
-                </div>
+                    <div class="mb-4 rounded overflow-hidden"><img src="./assets/images/${article.image}" alt="${article.title}"></div>
             `;
+
+            article.tags.forEach(tag => {
+                articleEl += `<div class="badge bg-primary fw-normal fs-6 me-1">${tag}</div>`
+            });
+
+            articleEl += '</div>';
     
             /* Stamp article */
             newsEl.insertAdjacentHTML('afterbegin', articleEl);
