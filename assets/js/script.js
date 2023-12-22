@@ -6,7 +6,7 @@ const allNews = [
         content: 'Scoperta di una nuova specie di papera di gomma',
         tags: ['geo', 'tech'],
         author: 'Diana Rossi',
-        published: '2023-02-11',
+        published: '2023-02-01',
         image: 'rubber-duck.jpg',
     },
     {
@@ -46,19 +46,46 @@ const checkboxEl = document.getElementById('checkbox-saved-news');
 /* Define variables */
 const savedNews = [];
 
+/* Create random rgba color */
+const random_rgba = () => {
+    const o = Math.round;
+    const r = Math.random;
+    const s = 255;
+
+    return `rgba(${o(r()*s)}, ${o(r()*s)}, ${o(r()*s)}, 1)`;
+}
+
+/* Create text color based on background contrast */
+const getTextColor = (rgba) =>{
+    rgba = rgba.match(/\d+/g);
+    const r = rgba[0];
+    const g = rgba[1];
+    const b = rgba[2];
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+
+    return yiq >= 128 ? 'black' : 'white';
+  }
+
 /* Create array for all tags */
 let allTags = [];
 allNews.forEach(article => {
-    article.tags.forEach(articleTag => {   
-        if (allTags.includes(articleTag) == false) {
-            allTags.push(articleTag);
+    article.tags.forEach(articleTag => {
+        const backgroundColor = random_rgba()
+        const color = getTextColor(backgroundColor);
+
+        if (allTags.filter(tag => tag.name == articleTag).length == 0) {
+            allTags.push({
+                name: articleTag,
+                color: color,
+                backgroundColor: backgroundColor
+            });
         }
     });
 })
 
 /* Stamp tags inside select */
 allTags.forEach(tag => {
-    const tagEl = `<option>${tag}</option>`
+    const tagEl = `<option>${tag.name}</option>`
     selectEl.insertAdjacentHTML('beforeend', tagEl);
 })
 
@@ -72,6 +99,13 @@ const stampNews = (news) => {
         news.forEach(article => {
             let articleEl;
             let icon = 'fa-regular';
+            const date = new Date(article.published);
+
+            /* Format date */
+            const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();
+            const month = date.getMonth() < 10 ? `0${date.getMonth()}` : date.getMonth();
+            const year = date.getFullYear();
+            const formatDate = `${day}/${month}/${year}`;
 
             /* Check if article is saved */
             if (savedNews.includes(article.id)) {
@@ -79,23 +113,30 @@ const stampNews = (news) => {
             }
 
             /* Create article element */
+
             articleEl = `
                 <div class="mt-4 p-4 article">
-                    <div class="d-flex align-items-start">
-                        <h2>${article.title}</h2>
+                    <div class="d-flex align-items-start mb-3">
+                        <h2 class="m-0">${article.title}</h2>
                         <button type="button" data-article="${article.id}" class="article-bookmark btn btn-link"><i class="${icon} fa-bookmark fa-2xl"></i></button>
                     </div>
                     <div class="fw-bold">Pubblicato da ${article.author}</div>
-                    <div class="fst-italic">In data ${article.published}</div>
+                    <div class="fst-italic">In data ${formatDate}</div>
                     <div class="my-3">${article.content}</div>
                     <div class="mb-4 rounded overflow-hidden"><img src="./assets/images/${article.image}" alt="${article.title}"></div>
+                    <div class="row gx-2">
             `;
 
-            article.tags.forEach(tag => {
-                articleEl += `<div class="badge bg-primary fw-normal fs-6 me-1">${tag}</div>`
+            article.tags.forEach(articleTag => {
+                const tag = allTags.filter(tag => tag.name == articleTag);
+                const tagName = tag[0].name;
+                const tagColor = tag[0].color;
+                const tagBackgroundColor = tag[0].backgroundColor;
+
+                articleEl += `<div class="col-auto"><div class="text-capitalize fw-normal fs-6 py-1 px-2 rounded overflow-hidden" style="background-color: ${tagBackgroundColor}; color: ${tagColor}">${tagName}</div></div>`
             });
 
-            articleEl += '</div>';
+            articleEl += '</div></div>';
     
             /* Stamp article */
             newsEl.insertAdjacentHTML('afterbegin', articleEl);
